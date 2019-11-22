@@ -1,5 +1,7 @@
 import java.util.*;
 import java.util.List;
+
+
 public class aiTicTacToe {
 
 	public int player; //1 for player 1 and 2 for player 2
