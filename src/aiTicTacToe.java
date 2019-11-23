@@ -2,29 +2,146 @@ import java.util.*;
 public class aiTicTacToe {
 
 	public int player; //1 for player 1 and 2 for player 2
+    List<List<positionTicTacToe>> winningLines; // winning Lines of the 3D board
 	private int getStateOfPositionFromBoard(positionTicTacToe position, List<positionTicTacToe> board)
 	{
 		//a helper function to get state of a certain position in the Tic-Tac-Toe board by given position TicTacToe
 		int index = position.x*16+position.y*4+position.z;
 		return board.get(index).state;
 	}
+
 	public positionTicTacToe myAIAlgorithm(List<positionTicTacToe> board, int player)
 	{
 		//TODO: this is where you are going to implement your AI algorithm to win the game. The default is an AI randomly choose any available move.
-		positionTicTacToe myNextMove = new positionTicTacToe(0,0,0);
-		
-		do
-			{
-				Random rand = new Random();
-				int x = rand.nextInt(4);
-				int y = rand.nextInt(4);
-				int z = rand.nextInt(4);
-				myNextMove = new positionTicTacToe(x,y,z);
-			}while(getStateOfPositionFromBoard(myNextMove,board)!=0);
+		positionTicTacToe myNextMove = randomPosition(board, player);
+
 		return myNextMove;
-			
 		
 	}
+
+	// This is the default random Algorithm
+	public positionTicTacToe randomPosition(List<positionTicTacToe> board, int player)
+	{
+		positionTicTacToe myNextMove = new positionTicTacToe(0,0,0);
+
+		do
+		{
+			Random rand = new Random();
+			int x = rand.nextInt(4);
+			int y = rand.nextInt(4);
+			int z = rand.nextInt(4);
+			myNextMove = new positionTicTacToe(x,y,z);
+		}while(getStateOfPositionFromBoard(myNextMove,board)!=0);
+		return myNextMove;
+	}
+
+	public positionTicTacToe alphaBetaPruning(List<positionTicTacToe> board, int player, int depth, int alpha, int beta, boolean maximizer)
+	{
+		List<positionTicTacToe> selectableMove = getEmptyPosition(board);
+		int value = 0;
+
+		if(depth == 0 || selectableMove.isEmpty())
+		{
+			//value = heuristicValue();
+		}
+		return null;
+	}
+
+	public int heuristicValue(List<positionTicTacToe> board)
+	{
+        int totalScore = 0;
+        int opponent = player == 1 ? 2 : 1;
+
+        for(int i = 0; i < winningLines.size(); i++)    // evaluate the score of each winning line to get the total score of the board
+        {
+            int playerCount = 0;
+            int opponentCount = 0;
+
+            List<positionTicTacToe> oneLine = winningLines.get(i);
+            for(int j = 0; j < oneLine.size(); j++)
+            {
+                int state = getStateOfPositionFromBoard(oneLine.get(j), board);
+
+                if(state == player)
+                {
+                    playerCount++;
+                }
+                if(state == opponent)
+                {
+                    opponentCount++;
+                }
+            }
+
+            int oneLineScore = oneLineScore_1(playerCount, opponentCount);
+            totalScore += oneLineScore;
+        }
+
+		return totalScore;
+	}
+
+	public int oneLineScore_1(int playerCount, int opponentCount)
+    {
+        int playerScore = 0;
+        int opponentScore = 0;
+        int totalSore = 0;
+
+        playerScore = (int)Math.pow(10, playerCount);
+        opponentScore = (int)(Math.pow(10, opponentCount) + opponentCount + 2);
+        totalSore = playerScore - opponentScore;
+
+        if(playerCount == 4)
+        {
+            return Integer.MAX_VALUE;
+        }
+        if(opponentCount == 4)
+        {
+            return Integer.MIN_VALUE;
+        }
+
+        return totalSore;
+    }
+
+	public int oneLineScore_2(int playerCount, int opponentCount)   //
+    {
+        int playerScore = 0;
+        int opponentScore = 0;
+        int totalSore = 0;
+
+        if(playerCount!=0&&opponentCount!=0)
+        {
+            return 0;
+        }
+
+        playerScore = (int)Math.pow(10, playerCount);
+        opponentScore = (int)(Math.pow(10, opponentCount) + opponentCount + 2);
+        totalSore = playerScore - opponentScore;
+
+        if(playerCount == 4)
+        {
+            return Integer.MAX_VALUE;
+        }
+        if(opponentCount == 4)
+        {
+            return Integer.MIN_VALUE;
+        }
+
+        return totalSore;
+    }
+
+	// Find the empty position on the board
+	public List<positionTicTacToe> getEmptyPosition(List<positionTicTacToe> board)
+	{
+		List<positionTicTacToe> emptyPositions = new ArrayList<positionTicTacToe>();
+		for(positionTicTacToe item : board)
+		{
+			if(item.state==0)
+			{
+				emptyPositions.add(item);
+			}
+		}
+		return emptyPositions;
+	}
+
 	private List<List<positionTicTacToe>> initializeWinningLines()
 	{
 		//create a list of winning line so that the game will "brute-force" check if a player satisfied any 	winning condition(s).
@@ -161,8 +278,17 @@ public class aiTicTacToe {
 		return winningLines;
 		
 	}
+
 	public aiTicTacToe(int setPlayer)
 	{
 		player = setPlayer;
+
+		winningLines = initializeWinningLines();
 	}
+
+    public static void main(String[] args) {
+        aiTicTacToe a = new aiTicTacToe(1);
+        int size = a.winningLines.size();
+    }
 }
+
