@@ -15,12 +15,37 @@ public class aiTicTacToe {
 	{
 		//TODO: this is where you are going to implement your AI algorithm to win the game. The default is an AI randomly choose any available move.
         positionTicTacToe myNextMove = null;
+
+        Scanner sc;
         if(player == 1)
         {
-            myNextMove = randomPosition(board);
-        }
-        if(player == 2) {
+            //myNextMove = randomPosition(board);
+
+            long start = System.currentTimeMillis();
             myNextMove = alphaBeta(board, DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+            long end = System.currentTimeMillis();
+            System.out.println("(" + myNextMove.x + "," + myNextMove.y + "," + myNextMove.z + ")");
+            System.out.println("this step takes: "+ (end - start)/1000.0 + "s");
+        }
+        if(player == 2)
+        {
+            long start = System.currentTimeMillis();
+            myNextMove = alphaBeta(board, DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+            long end = System.currentTimeMillis();
+            System.out.println("this step takes: "+ (end - start)/1000.0 + "s");
+
+            /*sc = new Scanner(System.in);
+            int x = 0;
+            int y = 0;
+            int z = 0;
+            System.out.println("X:");
+            x = sc.nextInt();
+            System.out.println("Y:");
+            y = sc.nextInt();
+            System.out.println("Z:");
+            z = sc.nextInt();
+
+            myNextMove= new positionTicTacToe(x,y,z,0);*/
         }
 		return myNextMove;
 	}
@@ -43,7 +68,6 @@ public class aiTicTacToe {
 
 	public positionTicTacToe alphaBeta(List<positionTicTacToe> board, int depth, int alpha, int beta, boolean maximizer)
     {
-        long start = System.currentTimeMillis();
         positionTicTacToe nextMove = new positionTicTacToe(0,0,0);
         List<positionTicTacToe> selectableMove = getEmptyPosition(board);
         List<positionTicTacToe> tempBoard = deepCopyATicTacToeBoard(board);
@@ -58,12 +82,16 @@ public class aiTicTacToe {
 
             int currentValue = alphaBetaPruning(tempBoard, depth - 1, alpha, beta, false);
 
+            //System.out.println(currentValue);
+
             if(currentValue > value)
             {
                 value = currentValue;
                 nextMove = item;
             }
             alpha = Math.max(alpha, value);
+
+            tempBoard.get(index).state = 0;
         }
 
         return nextMove;
@@ -93,6 +121,7 @@ public class aiTicTacToe {
                 value = Math.max(value, alphaBetaPruning(tempBoard,depth - 1, alpha, beta,false));
                 alpha = Math.max(alpha, value);
 
+                tempBoard.get(index).state = 0;
                 if(beta <= alpha)
                 {
                     break;
@@ -106,10 +135,13 @@ public class aiTicTacToe {
 
             for(positionTicTacToe item : selectableMove)
             {
-                value = Math.min(value, alphaBetaPruning(tempBoard, depth - 1, alpha, beta, true));
+                int index = item.x * 16 + item.y * 4 + item.z;
+                tempBoard.get(index).state = now;
 
+                value = Math.min(value, alphaBetaPruning(tempBoard, depth - 1, alpha, beta, true));
                 beta = Math.min(beta, value);
 
+                tempBoard.get(index).state = 0;
                 if(beta <= alpha)
                 {
                     break;
@@ -144,7 +176,7 @@ public class aiTicTacToe {
                 }
             }
 
-            int oneLineScore = oneLineScore_1(playerCount, opponentCount);
+            int oneLineScore = oneLineScore_2(playerCount, opponentCount);
             if(oneLineScore == Integer.MAX_VALUE || oneLineScore == Integer.MIN_VALUE)
             {
                 return oneLineScore;
@@ -195,14 +227,14 @@ public class aiTicTacToe {
         opponentScore = (int)(Math.pow(10, opponentCount) + opponentCount + 2);
         totalSore = playerScore - opponentScore;
 
-        if(playerCount == 4)
+        /*if(playerCount == 4)
         {
             return Integer.MAX_VALUE;
         }
         if(opponentCount == 4)
         {
             return Integer.MIN_VALUE;
-        }
+        }*/
 
         return totalSore;
     }
