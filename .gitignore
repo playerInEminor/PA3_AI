@@ -24,3 +24,6 @@ hs_err_pid*
 
 .idea/
 output/
+
+.DS_Store
+PA3_AI.iml
