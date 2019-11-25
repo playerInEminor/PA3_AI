@@ -1,6 +1,6 @@
 import java.util.*;
 public class aiTicTacToe {
-    public static final int DEPTH = 3;
+    public static final int DEPTH = 4;
 
 	public int player; //1 for player 1 and 2 for player 2
     List<List<positionTicTacToe>> winningLines; // winning Lines of the 3D board
@@ -15,38 +15,11 @@ public class aiTicTacToe {
 	{
 		//TODO: this is where you are going to implement your AI algorithm to win the game. The default is an AI randomly choose any available move.
         positionTicTacToe myNextMove = null;
-
-        Scanner sc;
-        if(player == 1)
-        {
-            //myNextMove = randomPosition(board);
-
-            long start = System.currentTimeMillis();
-            myNextMove = alphaBeta(board, DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
-            long end = System.currentTimeMillis();
-            System.out.println("(" + myNextMove.x + "," + myNextMove.y + "," + myNextMove.z + ")");
-            System.out.println("this step takes: "+ (end - start)/1000.0 + "s");
-        }
-        if(player == 2)
-        {
-            long start = System.currentTimeMillis();
-            myNextMove = alphaBeta(board, DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
-            long end = System.currentTimeMillis();
-            System.out.println("this step takes: "+ (end - start)/1000.0 + "s");
-
-            /*sc = new Scanner(System.in);
-            int x = 0;
-            int y = 0;
-            int z = 0;
-            System.out.println("X:");
-            x = sc.nextInt();
-            System.out.println("Y:");
-            y = sc.nextInt();
-            System.out.println("Z:");
-            z = sc.nextInt();
-
-            myNextMove= new positionTicTacToe(x,y,z,0);*/
-        }
+		long start = System.currentTimeMillis();
+		myNextMove = alphaBeta(board, DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, true);	// Run the alpha-beta pruning algorithm
+		long end = System.currentTimeMillis();
+		System.out.println("(" + myNextMove.x + "," + myNextMove.y + "," + myNextMove.z + ")");
+		System.out.println("this step takes: "+ (end - start)/1000.0 + "s");
 		return myNextMove;
 	}
 
@@ -66,6 +39,17 @@ public class aiTicTacToe {
 		return myNextMove;
 	}
 
+	// The first step of alpha-beta pruning
+
+	/**
+	 * The first step of alpha-beta pruning algorithm
+	 * @param board
+	 * @param depth
+	 * @param alpha
+	 * @param beta
+	 * @param maximizer
+	 * @return
+	 */
 	public positionTicTacToe alphaBeta(List<positionTicTacToe> board, int depth, int alpha, int beta, boolean maximizer)
     {
         positionTicTacToe nextMove = new positionTicTacToe(0,0,0);
@@ -80,9 +64,8 @@ public class aiTicTacToe {
 
             tempBoard.get(index).state = player;
 
+            // Start next pruning
             int currentValue = alphaBetaPruning(tempBoard, depth - 1, alpha, beta, false);
-
-            //System.out.println(currentValue);
 
             if(currentValue > value)
             {
@@ -97,6 +80,15 @@ public class aiTicTacToe {
         return nextMove;
     }
 
+	/**
+	 * The alpha-beta pruning algorithm with int as return
+	 * @param board	the current board situation
+	 * @param depth	remain depth
+	 * @param alpha
+	 * @param beta
+	 * @param maximizer
+	 * @return	the evaluation of this node
+	 */
 	public int alphaBetaPruning(List<positionTicTacToe> board, int depth, int alpha, int beta, boolean maximizer)
 	{
 		List<positionTicTacToe> selectableMove = getEmptyPosition(board);
@@ -108,21 +100,21 @@ public class aiTicTacToe {
 		if(depth == 0 || selectableMove.isEmpty())
 		{
             value = heuristicValue(board);
-            return value;
+            return value;	// return the evaluation of the leaf node
 		}
 		if(maximizer)
         {
             value = Integer.MIN_VALUE;
-            for(positionTicTacToe item : selectableMove)
+            for(positionTicTacToe item : selectableMove)	// traverse all the possible next step
             {
                 int index = item.x * 16 + item.y * 4 + item.z;
                 tempBoard.get(index).state = now;
 
-                value = Math.max(value, alphaBetaPruning(tempBoard,depth - 1, alpha, beta,false));
+                value = Math.max(value, alphaBetaPruning(tempBoard,depth - 1, alpha, beta,false));	// pass the board to next layer and get the evaluation
                 alpha = Math.max(alpha, value);
 
                 tempBoard.get(index).state = 0;
-                if(beta <= alpha)
+                if(beta <= alpha)	// pruning
                 {
                     break;
                 }
@@ -132,17 +124,16 @@ public class aiTicTacToe {
 		else
         {
             value = Integer.MAX_VALUE;
-
-            for(positionTicTacToe item : selectableMove)
+            for(positionTicTacToe item : selectableMove)	// traverse all the possible next step
             {
                 int index = item.x * 16 + item.y * 4 + item.z;
                 tempBoard.get(index).state = now;
 
-                value = Math.min(value, alphaBetaPruning(tempBoard, depth - 1, alpha, beta, true));
+                value = Math.min(value, alphaBetaPruning(tempBoard, depth - 1, alpha, beta, true));	// pass the board to next layer and get the evaluation
                 beta = Math.min(beta, value);
 
                 tempBoard.get(index).state = 0;
-                if(beta <= alpha)
+                if(beta <= alpha)	// pruning
                 {
                     break;
                 }
@@ -151,6 +142,11 @@ public class aiTicTacToe {
         }
 	}
 
+	/**
+	 *
+	 * @param board	the situation of board needed to be evalate
+	 * @return return the evaluate score of the board
+	 */
 	public int heuristicValue(List<positionTicTacToe> board)
 	{
         int totalScore = 0;
@@ -158,11 +154,11 @@ public class aiTicTacToe {
 
         for(int i = 0; i < winningLines.size(); i++)    // evaluate the score of each winning line to get the total score of the board
         {
-            int playerCount = 0;
-            int opponentCount = 0;
+            int playerCount = 0;	// the number of player's piece on this line
+            int opponentCount = 0;	// the number of opponent's piece on this line
 
             List<positionTicTacToe> oneLine = winningLines.get(i);
-            for(int j = 0; j < oneLine.size(); j++)
+            for(int j = 0; j < oneLine.size(); j++)	// traverse the line to get the number of each kind of pieces
             {
                 int state = getStateOfPositionFromBoard(oneLine.get(j), board);
 
@@ -176,20 +172,19 @@ public class aiTicTacToe {
                 }
             }
 
-            int oneLineScore = oneLineScore_2(playerCount, opponentCount);
-            if(oneLineScore == Integer.MAX_VALUE || oneLineScore == Integer.MIN_VALUE)
-            {
-                return oneLineScore;
-            }
-            else
-            {
-                totalScore += oneLineScore;
-            }
+            int oneLineScore = oneLineScore_2(playerCount, opponentCount);	// evaluate the score of this line
+			totalScore += oneLineScore;	// add the line score to total score of board
         }
 
 		return totalScore;
 	}
 
+	/**
+	 * almost the same as oneLineScore_2, but the line has both player's and opponent's pieces also has value
+	 * @param playerCount
+	 * @param opponentCount
+	 * @return
+	 */
 	public int oneLineScore_1(int playerCount, int opponentCount)
     {
         int playerScore = 0;
@@ -212,20 +207,28 @@ public class aiTicTacToe {
         return totalSore;
     }
 
-	public int oneLineScore_2(int playerCount, int opponentCount)   //
+	/**
+	 * 	evaluate the score of one possible winning line
+	 * @param playerCount
+	 * @param opponentCount
+	 * @return
+	 */
+	public int oneLineScore_2(int playerCount, int opponentCount)
     {
         int playerScore = 0;
         int opponentScore = 0;
         int totalSore = 0;
 
-        if(playerCount!=0&&opponentCount!=0)
+        if(playerCount!=0&&opponentCount!=0)	// if the line has both player's and opponent's pieces, this line has no value
         {
             return 0;
         }
 
+        // the line with n+1 pieces has 10 times value of the line with n pieces
         playerScore = (int)Math.pow(10, playerCount);
+        // the opponent' pieces has slightly higher value than player's pieces
         opponentScore = (int)(Math.pow(10, opponentCount) + opponentCount + 2);
-        totalSore = playerScore - opponentScore;
+        totalSore = playerScore - opponentScore;	// calculate the total value of the board
 
         /*if(playerCount == 4)
         {
@@ -405,12 +408,7 @@ public class aiTicTacToe {
 	{
 		player = setPlayer;
 
-		winningLines = initializeWinningLines();
+		winningLines = initializeWinningLines();	// get all possible winning lines
 	}
-
-    public static void main(String[] args) {
-        aiTicTacToe a = new aiTicTacToe(1);
-        int size = Integer.MIN_VALUE;
-    }
 }
 
