@@ -1,9 +1,39 @@
 import java.util.*;
 public class aiTicTacToe {
-    public static final int DEPTH = 6;
+    public static final int DEPTH = 5;
+
+    public int[][] heuristic;
 
 	public int player; //1 for player 1 and 2 for player 2
+    public long start;
     List<List<positionTicTacToe>> winningLines; // winning Lines of the 3D board
+
+	private void initializeHeuristic()
+	{
+		heuristic = new int[5][5];
+
+		for(int i=0; i< 5; i++)
+		{
+			for(int j = 0; j<5; j++)
+			{
+
+				if(i!=0&&j!=0)	// if the line has both player's and opponent's pieces, this line has no value
+				{
+					heuristic[i][j] = 0;
+					continue;
+				}
+
+				// the line with n+1 pieces has 10 times value of the line with n pieces
+				int playerScore = (int)Math.pow(10, i);
+				// the opponent' pieces has slightly higher value than player's pieces
+				int opponentScore = (int)(Math.pow(10, j) + j + 2);
+				int totalSore = playerScore - opponentScore;	// calculate the total value of the board
+
+				heuristic[i][j] = totalSore;
+			}
+		}
+	}
+
 	private int getStateOfPositionFromBoard(positionTicTacToe position, List<positionTicTacToe> board)
 	{
 		//a helper function to get state of a certain position in the Tic-Tac-Toe board by given position TicTacToe
@@ -11,15 +41,47 @@ public class aiTicTacToe {
 		return board.get(index).state;
 	}
 
+	private boolean isFirstStep(List<positionTicTacToe> board)
+	{
+		for(positionTicTacToe item : board)
+		{
+			if(item.state!=0)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public positionTicTacToe myAIAlgorithm(List<positionTicTacToe> board, int player)
 	{
 		//TODO: this is where you are going to implement your AI algorithm to win the game. The default is an AI randomly choose any available move.
-        positionTicTacToe myNextMove = null;
-		long start = System.currentTimeMillis();
-		myNextMove = alphaBeta(board, DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, true);	// Run the alpha-beta pruning algorithm
-		long end = System.currentTimeMillis();
-		System.out.println("(" + myNextMove.x + "," + myNextMove.y + "," + myNextMove.z + ")");
-		System.out.println("this step takes: "+ (end - start)/1000.0 + "s");
+
+		positionTicTacToe myNextMove = null;
+
+		int depth = DEPTH;
+		if(isFirstStep(board))
+		{
+			depth--;
+		}
+
+		if(player == 1)
+		{
+
+			start = System.currentTimeMillis();
+			myNextMove = alphaBeta(board, depth, Integer.MIN_VALUE, Integer.MAX_VALUE, true);    // Run the alpha-beta pruning algorithm
+			long end = System.currentTimeMillis();
+			System.out.println("(" + myNextMove.x + "," + myNextMove.y + "," + myNextMove.z + ")");
+			System.out.println("this step takes: " + (end - start) / 1000.0 + "s");
+		}
+		else if(player == 2)
+		{
+			start = System.currentTimeMillis();
+			myNextMove = alphaBeta(board, depth, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+			long end = System.currentTimeMillis();
+			System.out.println("(" + myNextMove.x + "," + myNextMove.y + "," + myNextMove.z + ")");
+			System.out.println("this step takes: " + (end - start) / 1000.0 + "s");
+		}
 		return myNextMove;
 	}
 
@@ -97,6 +159,9 @@ public class aiTicTacToe {
 		int opponent = player == 1 ? 2 : 1;
 		int now = maximizer ? player : opponent;
 
+		long tmp = System.currentTimeMillis();
+		double time = (tmp-start)/1000.0;
+
 		if(depth == 0 || selectableMove.isEmpty())
 		{
             value = heuristicValue(board);
@@ -173,12 +238,12 @@ public class aiTicTacToe {
             }
 
             // If one winning line has both player's and opponent's, this line will always has no value in the future, so delete it
-            if(playerCount > 0 && opponentCount > 0)
-            {
-                winningLines.remove(i);
-            }
+//            if(playerCount > 0 && opponentCount > 0)
+//            {
+//                winningLines.remove(i);
+//            }
 
-            int oneLineScore = oneLineScore_2(playerCount, opponentCount);	// evaluate the score of this line
+            int oneLineScore = heuristic[playerCount][opponentCount];	// evaluate the score of this line
 			totalScore += oneLineScore;	// add the line score to total score of board
         }
 
@@ -221,31 +286,24 @@ public class aiTicTacToe {
 	 */
 	public int oneLineScore_2(int playerCount, int opponentCount)
     {
-        int playerScore = 0;
-        int opponentScore = 0;
-        int totalSore = 0;
-
-        if(playerCount!=0&&opponentCount!=0)	// if the line has both player's and opponent's pieces, this line has no value
-        {
-            return 0;
-        }
-
-        // the line with n+1 pieces has 10 times value of the line with n pieces
-        playerScore = (int)Math.pow(10, playerCount);
-        // the opponent' pieces has slightly higher value than player's pieces
-        opponentScore = (int)(Math.pow(10, opponentCount) + opponentCount + 2);
-        totalSore = playerScore - opponentScore;	// calculate the total value of the board
-
-        /*if(playerCount == 4)
-        {
-            return Integer.MAX_VALUE;
-        }
-        if(opponentCount == 4)
-        {
-            return Integer.MIN_VALUE;
-        }*/
-
-        return totalSore;
+//        int playerScore = 0;
+//        int opponentScore = 0;
+//        int totalSore = 0;
+//
+//        if(playerCount!=0&&opponentCount!=0)	// if the line has both player's and opponent's pieces, this line has no value
+//        {
+//            return 0;
+//        }
+//
+//        // the line with n+1 pieces has 10 times value of the line with n pieces
+//        playerScore = (int)Math.pow(10, playerCount);
+//        // the opponent' pieces has slightly higher value than player's pieces
+//        opponentScore = (int)(Math.pow(10, opponentCount) + opponentCount + 2);
+//        totalSore = playerScore - opponentScore;	// calculate the total value of the board
+//
+//        return totalSore;
+		//System.out.println(playerCount + " " + opponentCount);
+		return heuristic[playerCount][opponentCount];
     }
 
 	// Find the empty position on the board
@@ -415,6 +473,8 @@ public class aiTicTacToe {
 		player = setPlayer;
 
 		winningLines = initializeWinningLines();	// get all possible winning lines
+
+		initializeHeuristic();
 	}
 }
 
