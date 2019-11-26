@@ -1,6 +1,6 @@
 import java.util.*;
 public class aiTicTacToe {
-    public static final int DEPTH = 4;
+    public static final int DEPTH = 6;
 
 	public int player; //1 for player 1 and 2 for player 2
     List<List<positionTicTacToe>> winningLines; // winning Lines of the 3D board
@@ -170,6 +170,12 @@ public class aiTicTacToe {
                 {
                     opponentCount++;
                 }
+            }
+
+            // If one winning line has both player's and opponent's, this line will always has no value in the future, so delete it
+            if(playerCount > 0 && opponentCount > 0)
+            {
+                winningLines.remove(i);
             }
 
             int oneLineScore = oneLineScore_2(playerCount, opponentCount);	// evaluate the score of this line
